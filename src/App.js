@@ -110,8 +110,8 @@ const App = () => {
 
   const logoutHandler = () => {
     window
-    .localStorage
-    .removeItem("loggedBloglistAppUser");
+      .localStorage
+      .removeItem("loggedBloglistAppUser");
     setUser(null);
   };
 
@@ -161,20 +161,36 @@ const App = () => {
     );
   };
 
+  const blogsRender = () => {
+    return (
+      <>
+        <h2>Blog Posts</h2>
+        {
+          blogs.map(
+            blog => <Blog key={blog.id} blog={blog} />
+          )
+        }
+      </>
+    );
+  };
+
+
    return (
     <div>
-      { user === null && loginForm() }
-      { user !== null && showUser() }
-      <h2>blogs</h2>
       {
-        blogs
-          .map(
-            blog =>
-              <Blog key={blog.id} blog={blog} />
-          )
+        user === null
+          ? (
+              <>{loginForm()}</>
+            )
+          : (
+              <>
+                {showUser()}
+                {blogForm()}
+                {blogsRender()}
+                {logoutButton()}
+              </>
+            )
       }
-      {blogForm()}
-      { user !== null && logoutButton()}
     </div>
   );
 };
