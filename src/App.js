@@ -22,6 +22,19 @@ const App = () => {
     )
   }, []);
 
+  useEffect(() => {
+    const loggedUserJSON = window
+      .localStorage
+      .getItem("loggedBloglistAppUser");
+
+    console.log("User found in local storage, already logged in");
+
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+    }
+  }, []);
+
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
@@ -29,10 +42,14 @@ const App = () => {
         `Logging in with username=${username} and password=${password}`
       );
       const userLogin = await loginService.login({ username, password });
+      window
+        .localStorage
+        .setItem(
+          "loggedBloglistAppUser", JSON.stringify(userLogin)
+        );
       setUser(userLogin);
       setUsername("");
       setPassword("");
-      console.log(user);
     } catch (error) {
       console.error("Error caught")
       console.error(error.message);
@@ -91,10 +108,17 @@ const App = () => {
     );
   };
 
+  const logoutHandler = () => {
+    window
+    .localStorage
+    .removeItem("loggedBloglistAppUser");
+    setUser(null);
+  };
+
   const logoutButton = () => {
     return (
       <>
-        <button onClick={() => setUser(null)}>logout</button>
+        <button onClick={logoutHandler}>logout</button>
       </>
     );
   };
