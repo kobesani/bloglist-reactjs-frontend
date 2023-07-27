@@ -1,20 +1,36 @@
 import { useState, useEffect } from 'react';
 import Blog from './components/Blog';
+import Notification from './components/Notification';
 import blogService from './services/blogs';
 import loginService from './services/login';
 
 const App = () => {
-  const [blogs, setBlogs] = useState([]);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [user, setUser] = useState(null);
   const blogDefault = {
     title: "",
     url: "",
     author: "",
     likes: 0
   };
+
+  const [blogs, setBlogs] = useState([]);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [user, setUser] = useState(null);
   const [blog, setBlog] = useState(blogDefault);
+  const [statusMessage, setStatusMessage] = useState(
+    {message: null, className: null}
+  );
+
+  const updateStatusMessage = (newMessage, notificationType, timeout=5000) => {
+    setStatusMessage(
+      {message: newMessage, className: notificationType}
+    )
+    setTimeout(
+      () => {
+        setStatusMessage({message: null, ...statusMessage})
+      }, timeout
+    )
+  }
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -27,9 +43,8 @@ const App = () => {
       .localStorage
       .getItem("loggedBloglistAppUser");
 
-    console.log("User found in local storage, already logged in");
-
     if (loggedUserJSON) {
+      console.log("User found in local storage, already logged in");
       const user = JSON.parse(loggedUserJSON);
       setUser(user);
     }
@@ -46,13 +61,15 @@ const App = () => {
         .localStorage
         .setItem(
           "loggedBloglistAppUser", JSON.stringify(userLogin)
-        );
+          );
       setUser(userLogin);
       setUsername("");
       setPassword("");
+      updateStatusMessage(`${userLogin.name} successfully logged in`, "notification");
     } catch (error) {
-      console.error("Error caught")
+      console.error("Error caught hihi")
       console.error(error.message);
+      updateStatusMessage("Username or password is incorrect", "error");
     }
   };
 
@@ -61,11 +78,20 @@ const App = () => {
     try {
       if (!user) {
         console.error("user must be logged in for this action")
+        updateStatusMessage(
+          "User must be logged in for this action", "error"
+        );
         return;
       }
       const newBlog = await blogService.addNewBlog(blog, user);
       console.log("Blog added", newBlog);
+      setBlogs(blogs.concat({...blog, id: newBlog.id}));
+      setBlog(blogDefault);
+      updateStatusMessage("New blog post was successfully added", "notification");
     } catch (error) {
+      updateStatusMessage(
+        "New blog was not added, check that all fields are filled", "error"
+      );
       console.error(error.message);
     }
     
@@ -113,6 +139,7 @@ const App = () => {
       .localStorage
       .removeItem("loggedBloglistAppUser");
     setUser(null);
+    updateStatusMessage(`${user.name} successfully logged out`, "notification");
   };
 
   const logoutButton = () => {
@@ -174,9 +201,12 @@ const App = () => {
     );
   };
 
-
    return (
     <div>
+      <Notification
+        message={statusMessage.message}
+        className={statusMessage.className}
+      />
       {
         user === null
           ? (
