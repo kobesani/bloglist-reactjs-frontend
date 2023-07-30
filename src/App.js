@@ -1,36 +1,45 @@
 import { useState, useEffect } from 'react';
-import Blog from './components/Blog';
+
+import BlogComponents from './components/Blog';
+import LoginComponents from './components/Login';
 import Notification from './components/Notification';
+import Togglable from './components/Togglable';
+
 import blogService from './services/blogs';
 import loginService from './services/login';
 
 const App = () => {
-  const blogDefault = {
-    title: "",
-    url: "",
-    author: "",
-    likes: 0
-  };
-
   const [blogs, setBlogs] = useState([]);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
-  const [blog, setBlog] = useState(blogDefault);
   const [statusMessage, setStatusMessage] = useState(
     {message: null, className: null}
   );
 
+  const userToLocalStorage = (userToStore) =>
+    window
+      .localStorage
+      .setItem(
+        "loggedBloglistAppUser", JSON.stringify(userToStore)
+      );
+
+  const userFromLocalStorage = () => {
+    return (
+      window
+        .localStorage
+        .getItem("loggedBloglistAppUser")
+    );
+  };
+
   const updateStatusMessage = (newMessage, notificationType, timeout=5000) => {
     setStatusMessage(
       {message: newMessage, className: notificationType}
-    )
+    );
     setTimeout(
       () => {
         setStatusMessage({message: null, ...statusMessage})
       }, timeout
-    )
-  }
+    );
+  };
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -39,9 +48,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const loggedUserJSON = window
-      .localStorage
-      .getItem("loggedBloglistAppUser");
+    const loggedUserJSON = userFromLocalStorage();
 
     if (loggedUserJSON) {
       console.log("User found in local storage, already logged in");
@@ -50,31 +57,22 @@ const App = () => {
     }
   }, []);
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
+  const loginUserToApp = async (username, password) => {
     try {
       console.log(
         `Logging in with username=${username} and password=${password}`
       );
       const userLogin = await loginService.login({ username, password });
-      window
-        .localStorage
-        .setItem(
-          "loggedBloglistAppUser", JSON.stringify(userLogin)
-          );
+      userToLocalStorage(userLogin);
       setUser(userLogin);
-      setUsername("");
-      setPassword("");
       updateStatusMessage(`${userLogin.name} successfully logged in`, "notification");
     } catch (error) {
-      console.error("Error caught hihi")
       console.error(error.message);
       updateStatusMessage("Username or password is incorrect", "error");
     }
   };
 
-  const handleNewBlogSubmit = async (event) => {
-    event.preventDefault();
+  const addNewBlog = async (blog) => { 
     try {
       if (!user) {
         console.error("user must be logged in for this action")
@@ -86,7 +84,6 @@ const App = () => {
       const newBlog = await blogService.addNewBlog(blog, user);
       console.log("Blog added", newBlog);
       setBlogs(blogs.concat({...blog, id: newBlog.id}));
-      setBlog(blogDefault);
       updateStatusMessage("New blog post was successfully added", "notification");
     } catch (error) {
       updateStatusMessage(
@@ -97,43 +94,6 @@ const App = () => {
     
   };
 
-  const loginForm = () => {
-    return (
-      <>
-        <h2>login</h2>
-        <form onSubmit={handleLogin}>
-          <div>
-            username
-            <input
-              type="text"
-              value={username}
-              name="Username"
-              onChange={({ target }) => setUsername(target.value)}
-            />
-          </div>
-          <div>
-            password
-            <input
-              type="password"
-              value={password}
-              name="Password"
-              onChange={({ target }) => setPassword(target.value)}
-            />
-          </div>
-          <button type="submit">login</button>
-        </form>
-      </>
-    );
-  };
-
-  const showUser = () => {
-    return (
-      <div>
-        <p>{user.name} logged in</p>
-      </div>
-    );
-  };
-
   const logoutHandler = () => {
     window
       .localStorage
@@ -142,59 +102,13 @@ const App = () => {
     updateStatusMessage(`${user.name} successfully logged out`, "notification");
   };
 
-  const logoutButton = () => {
-    return (
-      <>
-        <button onClick={logoutHandler}>logout</button>
-      </>
-    );
-  };
-
-  const blogForm = () => {
-    return (
-      <>
-        <h2>Add new blog</h2>
-        <form onSubmit={handleNewBlogSubmit}>
-          <div>
-            title
-            <input 
-              type="text"
-              value={blog.title}
-              name="title"
-              onChange={({ target }) => setBlog({...blog, title: target.value})}
-            />
-          </div>
-          <div>
-            author
-            <input 
-              type="text"
-              value={blog.author}
-              name="title"
-              onChange={({ target }) => setBlog({...blog, author: target.value})}
-            />
-          </div>
-          <div>
-            url
-            <input 
-              type="text"
-              value={blog.url}
-              name="title"
-              onChange={({ target }) => setBlog({...blog, url: target.value})}
-            />
-          </div>
-          <button type="submit">Add</button>
-        </form>
-      </>
-    );
-  };
-
   const blogsRender = () => {
     return (
       <>
         <h2>Blog Posts</h2>
         {
           blogs.map(
-            blog => <Blog key={blog.id} blog={blog} />
+            blog => <BlogComponents.Blog key={blog.id} blog={blog} />
           )
         }
       </>
@@ -210,14 +124,22 @@ const App = () => {
       {
         user === null
           ? (
-              <>{loginForm()}</>
+              <LoginComponents.LoginForm
+                loginUser={loginUserToApp}
+              />
             )
           : (
               <>
-                {showUser()}
-                {blogForm()}
+                <LoginComponents.ShowUser
+                  username={user.name}
+                  logoutHandler={logoutHandler}
+                />
+                <Togglable buttonLabel="add blog">
+                  <BlogComponents.AddBlogForm
+                    createBlog={addNewBlog}
+                  />
+                </Togglable>
                 {blogsRender()}
-                {logoutButton()}
               </>
             )
       }
