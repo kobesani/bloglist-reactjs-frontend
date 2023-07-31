@@ -8,27 +8,14 @@ import Togglable from './components/Togglable';
 import blogService from './services/blogs';
 import loginService from './services/login';
 
+import storageUtils from "./utils/storage";
+
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [user, setUser] = useState(null);
   const [statusMessage, setStatusMessage] = useState(
     {message: null, className: null}
   );
-
-  const userToLocalStorage = (userToStore) =>
-    window
-      .localStorage
-      .setItem(
-        "loggedBloglistAppUser", JSON.stringify(userToStore)
-      );
-
-  const userFromLocalStorage = () => {
-    return (
-      window
-        .localStorage
-        .getItem("loggedBloglistAppUser")
-    );
-  };
 
   const updateStatusMessage = (newMessage, notificationType, timeout=5000) => {
     setStatusMessage(
@@ -48,7 +35,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const loggedUserJSON = userFromLocalStorage();
+    const loggedUserJSON = storageUtils.userFromLocalStorage();
 
     if (loggedUserJSON) {
       console.log("User found in local storage, already logged in");
@@ -63,7 +50,7 @@ const App = () => {
         `Logging in with username=${username} and password=${password}`
       );
       const userLogin = await loginService.login({ username, password });
-      userToLocalStorage(userLogin);
+      storageUtils.userToLocalStorage(userLogin);
       setUser(userLogin);
       updateStatusMessage(`${userLogin.name} successfully logged in`, "notification");
     } catch (error) {
@@ -83,7 +70,20 @@ const App = () => {
       }
       const newBlog = await blogService.addNewBlog(blog, user);
       console.log("Blog added", newBlog);
-      setBlogs(blogs.concat({...blog, id: newBlog.id}));
+      console.log(user);
+      // user info is accessed here so that the username can be viewed in the react app
+      setBlogs(
+        blogs.concat(
+          {
+            ...blog,
+            id: newBlog.id,
+            user: {
+              username: user.username,
+              name: user.name
+            }
+          }
+        )
+      );
       updateStatusMessage("New blog post was successfully added", "notification");
     } catch (error) {
       updateStatusMessage(
@@ -91,24 +91,62 @@ const App = () => {
       );
       console.error(error.message);
     }
-    
+  };
+
+  const blogDeleter = async (blog) => {
+    try {
+      if (!user) {
+        console.error("user must be logged in for this action")
+        updateStatusMessage(
+          "User must be logged in for this action", "error"
+        );
+        return;
+      }
+      await blogService.deleteBlog(blog, user);
+      setBlogs(
+        blogs.filter((b) => b.id !== blog.id)
+      );
+      updateStatusMessage("Blog successfully deleted!", "notification");
+    } catch (error) {
+      updateStatusMessage(
+        "blog was not deleted", "error"
+      );
+    }
+  };
+
+  const updateLikesForBlog = async (blog) => {
+    const updatedBlog = await blogService
+      .updateLikes({ ...blog, likes: blog.likes + 1 });
+
+    setBlogs(
+      blogs.map(
+        (blog) => blog.id === updatedBlog.id ? updatedBlog : blog
+      )
+    );
+    updateStatusMessage("Blog post was successfully liked", "notification");
   };
 
   const logoutHandler = () => {
-    window
-      .localStorage
-      .removeItem("loggedBloglistAppUser");
+    storageUtils.userRemoveLocalStorage();
     setUser(null);
     updateStatusMessage(`${user.name} successfully logged out`, "notification");
   };
 
-  const blogsRender = () => {
+  const blogsRender = (blogUpdater) => {
     return (
       <>
         <h2>Blog Posts</h2>
         {
-          blogs.map(
-            blog => <BlogComponents.Blog key={blog.id} blog={blog} />
+          blogs
+          .sort((a, b) => b.likes - a.likes)
+          .map(
+            blog => <BlogComponents.Blog
+                      key={blog.id}
+                      blog={blog}
+                      updateBlog={blogUpdater}
+                      deleteBlog={blogDeleter}
+                      currentUser={user}
+                    />
           )
         }
       </>
@@ -139,7 +177,7 @@ const App = () => {
                     createBlog={addNewBlog}
                   />
                 </Togglable>
-                {blogsRender()}
+                {blogsRender(updateLikesForBlog)}
               </>
             )
       }

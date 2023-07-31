@@ -1,10 +1,42 @@
 import { useState } from "react";
+import Togglable from "./Togglable";
 
-const Blog = ({blog}) => (
-  <div>
-    {blog.title} {blog.author}
-  </div>  
-);
+const Blog = ({ blog, updateBlog, deleteBlog , currentUser }) => {
+  const blogStyle = {
+    paddingTop: 10,
+    paddingLeft: 2,
+    border: 'solid',
+    borderWidth: 1,
+    marginBottom: 5
+  }
+
+  const handleLike = async () => {
+    updateBlog(blog);
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this blog?")) {
+      deleteBlog(blog);
+    }
+  };
+
+  return (
+    <div style={blogStyle}>
+      {blog.title} {blog.author}
+      <Togglable buttonLabel="view">
+        url: {blog.url}<br/>
+        likes: {blog.likes}<br/>
+        user: {blog.user.username}<br/>
+        <button onClick={handleLike}>like</button>
+        {
+          currentUser.id === blog.user.id
+            ? <button onClick={handleDelete}>remove</button>
+            : null
+        }
+      </Togglable>
+    </div>  
+  );
+};
 
 const AddBlogForm = ({ createBlog }) => {
   const blogDefault = {
