@@ -1,4 +1,4 @@
-const userStorageKey = "loggedBloglistAppUser"
+const userStorageKey = "loggedBloglistAppUser";
 
 const userToLocalStorage = (userToStore) =>
   window
@@ -7,7 +7,7 @@ const userToLocalStorage = (userToStore) =>
       userStorageKey, JSON.stringify(userToStore)
     );
 
-const userFromLocalStorage = () => 
+const userFromLocalStorage = () =>
   window
     .localStorage
     .getItem(userStorageKey);
@@ -17,9 +17,8 @@ const userRemoveLocalStorage = () =>
     .localStorage
     .removeItem(userStorageKey);
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   userToLocalStorage,
   userFromLocalStorage,
   userRemoveLocalStorage
-}
+};

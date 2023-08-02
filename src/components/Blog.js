@@ -5,10 +5,10 @@ const Blog = ({ blog, updateBlog, deleteBlog , currentUser }) => {
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
-    border: 'solid',
+    border: "solid",
     borderWidth: 1,
     marginBottom: 5
-  }
+  };
 
   const handleLike = async () => {
     updateBlog(blog);
@@ -34,7 +34,7 @@ const Blog = ({ blog, updateBlog, deleteBlog , currentUser }) => {
             : null
         }
       </Togglable>
-    </div>  
+    </div>
   );
 };
 
@@ -82,5 +82,4 @@ const AddBlogForm = ({ createBlog }) => {
   );
 };
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export default { Blog, AddBlogForm };

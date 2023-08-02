@@ -1,6 +1,11 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 
 const LoginForm = ({ loginUser }) => {
+  LoginForm.propTypes = {
+    loginUser: PropTypes.func.isRequired
+  };
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const handleLogin = (event) => {
@@ -9,6 +14,7 @@ const LoginForm = ({ loginUser }) => {
     setUsername("");
     setPassword("");
   };
+
   return (
     <>
       <h2>login</h2>
@@ -38,6 +44,11 @@ const LoginForm = ({ loginUser }) => {
 };
 
 const ShowUser = ({ username, logoutHandler }) => {
+  ShowUser.propTypes = {
+    username: PropTypes.string.isRequired,
+    logoutHandler: PropTypes.func.isRequired
+  };
+
   return (
     <div>
       <p>{username} is logged in</p>
@@ -46,5 +57,4 @@ const ShowUser = ({ username, logoutHandler }) => {
   );
 };
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export default { LoginForm, ShowUser };

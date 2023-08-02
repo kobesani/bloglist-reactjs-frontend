@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-import BlogComponents from './components/Blog';
-import LoginComponents from './components/Login';
-import Notification from './components/Notification';
-import Togglable from './components/Togglable';
+import BlogComponents from "./components/Blog";
+import LoginComponents from "./components/Login";
+import Notification from "./components/Notification";
+import Togglable from "./components/Togglable";
 
-import blogService from './services/blogs';
-import loginService from './services/login';
+import blogService from "./services/blogs";
+import loginService from "./services/login";
 
 import storageUtils from "./utils/storage";
 
@@ -14,16 +14,16 @@ const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [user, setUser] = useState(null);
   const [statusMessage, setStatusMessage] = useState(
-    {message: null, className: null}
+    { message: null, className: null }
   );
 
   const updateStatusMessage = (newMessage, notificationType, timeout=5000) => {
     setStatusMessage(
-      {message: newMessage, className: notificationType}
+      { message: newMessage, className: notificationType }
     );
     setTimeout(
       () => {
-        setStatusMessage({message: null, ...statusMessage})
+        setStatusMessage({ message: null, ...statusMessage });
       }, timeout
     );
   };
@@ -31,7 +31,7 @@ const App = () => {
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
-    )
+    );
   }, []);
 
   useEffect(() => {
@@ -59,10 +59,10 @@ const App = () => {
     }
   };
 
-  const addNewBlog = async (blog) => { 
+  const addNewBlog = async (blog) => {
     try {
       if (!user) {
-        console.error("user must be logged in for this action")
+        console.error("user must be logged in for this action");
         updateStatusMessage(
           "User must be logged in for this action", "error"
         );
@@ -96,7 +96,7 @@ const App = () => {
   const blogDeleter = async (blog) => {
     try {
       if (!user) {
-        console.error("user must be logged in for this action")
+        console.error("user must be logged in for this action");
         updateStatusMessage(
           "User must be logged in for this action", "error"
         );
@@ -138,22 +138,23 @@ const App = () => {
         <h2>Blog Posts</h2>
         {
           blogs
-          .sort((a, b) => b.likes - a.likes)
-          .map(
-            blog => <BlogComponents.Blog
-                      key={blog.id}
-                      blog={blog}
-                      updateBlog={blogUpdater}
-                      deleteBlog={blogDeleter}
-                      currentUser={user}
-                    />
-          )
+            .sort((a, b) => b.likes - a.likes)
+            .map(
+              blog =>
+                <BlogComponents.Blog
+                  key={blog.id}
+                  blog={blog}
+                  updateBlog={blogUpdater}
+                  deleteBlog={blogDeleter}
+                  currentUser={user}
+                />
+            )
         }
       </>
     );
   };
 
-   return (
+  return (
     <div>
       <Notification
         message={statusMessage.message}
@@ -161,25 +162,27 @@ const App = () => {
       />
       {
         user === null
-          ? (
-              <LoginComponents.LoginForm
-                loginUser={loginUserToApp}
+          ?
+          (
+            <LoginComponents.LoginForm
+              loginUser={loginUserToApp}
+            />
+          )
+          :
+          (
+            <>
+              <LoginComponents.ShowUser
+                username={user.name}
+                logoutHandler={logoutHandler}
               />
-            )
-          : (
-              <>
-                <LoginComponents.ShowUser
-                  username={user.name}
-                  logoutHandler={logoutHandler}
+              <Togglable buttonLabel="add blog">
+                <BlogComponents.AddBlogForm
+                  createBlog={addNewBlog}
                 />
-                <Togglable buttonLabel="add blog">
-                  <BlogComponents.AddBlogForm
-                    createBlog={addNewBlog}
-                  />
-                </Togglable>
-                {blogsRender(updateLikesForBlog)}
-              </>
-            )
+              </Togglable>
+              {blogsRender(updateLikesForBlog)}
+            </>
+          )
       }
     </div>
   );
