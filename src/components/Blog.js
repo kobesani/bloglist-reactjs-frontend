@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Togglable from "./Togglable";
 
-const Blog = ({ blog, updateBlog, deleteBlog , currentUser }) => {
+const Blog = ({ blog, updateBlog, deleteBlog, currentUser }) => {
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
@@ -21,7 +21,7 @@ const Blog = ({ blog, updateBlog, deleteBlog , currentUser }) => {
   };
 
   return (
-    <div style={blogStyle}>
+    <div className="blog" style={blogStyle}>
       {blog.title} {blog.author}
       <Togglable buttonLabel="view">
         url: {blog.url}<br/>
