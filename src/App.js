@@ -156,6 +156,7 @@ const App = () => {
 
   return (
     <div>
+      <h2>Bloglist App</h2>
       <Notification
         message={statusMessage.message}
         className={statusMessage.className}
@@ -164,9 +165,11 @@ const App = () => {
         user === null
           ?
           (
-            <LoginComponents.LoginForm
-              loginUser={loginUserToApp}
-            />
+            <Togglable buttonLabel="login">
+              <LoginComponents.LoginForm
+                loginUser={loginUserToApp}
+              />
+            </Togglable>
           )
           :
           (
