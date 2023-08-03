@@ -67,6 +67,7 @@ const AddBlogForm = ({ createBlog }) => {
               <div key={field}>
                 {field}
                 <input
+                  id={`${field}-input`}
                   type="text"
                   value={blog[field]}
                   name={field}
