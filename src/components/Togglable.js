@@ -3,7 +3,8 @@ import PropTypes from "prop-types";
 
 const Togglable = (props) => {
   Togglable.propTypes = {
-    buttonLabel: PropTypes.string.isRequired
+    buttonLabel: PropTypes.string.isRequired,
+    buttonId: PropTypes.string.isRequired
   };
 
   const [visible, setVisible] = useState(false);
@@ -16,7 +17,7 @@ const Togglable = (props) => {
   return (
     <div>
       <div style={hideWhenVisible}>
-        <button onClick={toggleVisibility}>
+        <button onClick={toggleVisibility} id={props.buttonId}>
           {props.buttonLabel}
         </button>
       </div>

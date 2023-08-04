@@ -9,6 +9,7 @@ import blogService from "./services/blogs";
 import loginService from "./services/login";
 
 import storageUtils from "./utils/storage";
+// import errorUtils from "./utils/errors";
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
@@ -54,8 +55,11 @@ const App = () => {
       setUser(userLogin);
       updateStatusMessage(`${userLogin.name} successfully logged in`, "notification");
     } catch (error) {
-      console.error(error.message);
-      updateStatusMessage("Username or password is incorrect", "error");
+      if (error.name === "IncorrectCredentialsError") {
+        updateStatusMessage(error.message, "error");
+      } else {
+        updateStatusMessage(error.message, "error");
+      }
     }
   };
 
@@ -115,12 +119,20 @@ const App = () => {
   };
 
   const updateLikesForBlog = async (blog) => {
+    const blogCreator = blog.user;
+    delete blogCreator.id;
+    console.log("Hello", blogCreator);
     const updatedBlog = await blogService
-      .updateLikes({ ...blog, likes: blog.likes + 1 });
+      .updateLikes({ ...blog, likes: blog.likes + 1, user: { ...blogCreator } });
+    // console.log({ ...updatedBlog, user: blog.user });
+    console.log(blogCreator);
 
     setBlogs(
       blogs.map(
-        (blog) => blog.id === updatedBlog.id ? updatedBlog : blog
+        (blog) => blog.id === updatedBlog.id
+          // updatedBlog does not return user info only user.id
+          ? { ...updatedBlog, user: blogCreator }
+          : blog
       )
     );
     updateStatusMessage("Blog post was successfully liked", "notification");
@@ -165,7 +177,7 @@ const App = () => {
         user === null
           ?
           (
-            <Togglable buttonLabel="login">
+            <Togglable buttonLabel="login" buttonId="login-toggle">
               <LoginComponents.LoginForm
                 loginUser={loginUserToApp}
               />
@@ -178,7 +190,7 @@ const App = () => {
                 username={user.name}
                 logoutHandler={logoutHandler}
               />
-              <Togglable buttonLabel="add blog">
+              <Togglable buttonLabel="add blog" buttonId="add-blog-toggle">
                 <BlogComponents.AddBlogForm
                   createBlog={addNewBlog}
                 />

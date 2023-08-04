@@ -11,6 +11,7 @@ const Blog = ({ blog, updateBlog, deleteBlog, currentUser }) => {
   };
 
   const handleLike = async () => {
+    // console.log(blog);
     updateBlog(blog);
   };
 
@@ -23,11 +24,11 @@ const Blog = ({ blog, updateBlog, deleteBlog, currentUser }) => {
   return (
     <div className="blog" style={blogStyle}>
       {blog.title} {blog.author}
-      <Togglable buttonLabel="view">
+      <Togglable buttonLabel="view" buttonId="blog-toggle">
         url: {blog.url}<br/>
         likes: {blog.likes}<br/>
         user: {blog.user.username}<br/>
-        <button onClick={handleLike}>like</button>
+        <button id="like-button" onClick={handleLike}>like</button>
         {
           currentUser.id === blog.user.id
             ? <button onClick={handleDelete}>remove</button>
@@ -77,7 +78,7 @@ const AddBlogForm = ({ createBlog }) => {
             )
           )
         }
-        <button type="submit">Add</button>
+        <button id="new-blog-submit" type="submit">Add</button>
       </form>
     </>
   );
